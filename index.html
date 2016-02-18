@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Rollbar-php by asrustia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Rollbar-php</h1>
+      <h2 class="project-tagline">Error tracking and logging from PHP to Rollbar</h2>
+      <a href="https://github.com/asrustia/rollbar-php" class="btn">View on GitHub</a>
+      <a href="https://github.com/asrustia/rollbar-php/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/asrustia/rollbar-php/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="rollbar-notifier-for-php-" class="anchor" href="#rollbar-notifier-for-php-" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Rollbar notifier for PHP <a href="https://travis-ci.org/rollbar/rollbar-php"><img src="https://travis-ci.org/rollbar/rollbar-php.png?branch=v0.15.0" alt="Build Status"></a>
+</h1>
+
+
+
+<p>This library detects errors and exceptions in your application and reports them to <a href="https://rollbar.com">Rollbar</a> for alerts, reporting, and analysis.</p>
+
+
+
+<h2>
+<a id="quick-start" class="anchor" href="#quick-start" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Quick start</h2>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c">// installs global error and exception handlers</span></span>
+<span class="pl-s1"><span class="pl-c1">Rollbar</span><span class="pl-k">::</span>init(<span class="pl-c1">array</span>(<span class="pl-s"><span class="pl-pds">'</span>access_token<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>POST_SERVER_ITEM_ACCESS_TOKEN<span class="pl-pds">'</span></span>));</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">try</span> {</span>
+<span class="pl-s1">    <span class="pl-k">throw</span> <span class="pl-k">new</span> <span class="pl-c1">Exception</span>(<span class="pl-s"><span class="pl-pds">'</span>test exception<span class="pl-pds">'</span></span>);</span>
+<span class="pl-s1">} <span class="pl-k">catch</span> (<span class="pl-c1">Exception</span> <span class="pl-smi">$e</span>) {</span>
+<span class="pl-s1">    <span class="pl-c1">Rollbar</span><span class="pl-k">::</span>report_exception(<span class="pl-smi">$e</span>);</span>
+<span class="pl-s1">}</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c">// Message at level 'info'</span></span>
+<span class="pl-s1"><span class="pl-c1">Rollbar</span><span class="pl-k">::</span>report_message(<span class="pl-s"><span class="pl-pds">'</span>testing 123<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>info<span class="pl-pds">'</span></span>);</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c">// With extra data (3rd arg) and custom payload options (4th arg)</span></span>
+<span class="pl-s1"><span class="pl-c1">Rollbar</span><span class="pl-k">::</span>report_message(<span class="pl-s"><span class="pl-pds">'</span>testing 123<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>info<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                        <span class="pl-c">// key-value additional data</span></span>
+<span class="pl-s1">                        <span class="pl-c1">array</span>(<span class="pl-s"><span class="pl-pds">"</span>some_key<span class="pl-pds">"</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">"</span>some value<span class="pl-pds">"</span></span>),  </span>
+<span class="pl-s1">                        <span class="pl-c">// payload options (overrides defaults) - see api docs</span></span>
+<span class="pl-s1">                        <span class="pl-c1">array</span>(<span class="pl-s"><span class="pl-pds">"</span>fingerprint<span class="pl-pds">"</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">"</span>custom-fingerprint-here<span class="pl-pds">"</span></span>));</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c">// raises an E_NOTICE which will *not* be reported by the error handler</span></span>
+<span class="pl-s1"><span class="pl-smi">$foo</span> <span class="pl-k">=</span> <span class="pl-smi">$bar</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c">// will be reported by the exception handler</span></span>
+<span class="pl-s1"><span class="pl-k">throw</span> <span class="pl-k">new</span> <span class="pl-c1">Exception</span>(<span class="pl-s"><span class="pl-pds">'</span>test 2<span class="pl-pds">'</span></span>);</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<h3>
+<a id="general" class="anchor" href="#general" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>General</h3>
+
+<p>Download <a href="https://raw.github.com/rollbar/rollbar-php/master/src/rollbar.php">rollbar.php</a> and put it somewhere you can access.</p>
+
+<h3>
+<a id="if-using-composer" class="anchor" href="#if-using-composer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>If Using Composer</h3>
+
+<p>Add <code>rollbar/rollbar</code> to your <code>composer.json</code>:</p>
+
+<div class="highlight highlight-source-json"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>require<span class="pl-pds">"</span></span>: {
+        <span class="pl-s"><span class="pl-pds">"</span>rollbar/rollbar<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>~0.15.0<span class="pl-pds">"</span></span>
+    }
+}</pre></div>
+
+<h2>
+<a id="setup" class="anchor" href="#setup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Setup</h2>
+
+<p>Add the following code at your application's entry point:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">require_once</span> <span class="pl-s"><span class="pl-pds">'</span>rollbar.php<span class="pl-pds">'</span></span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$config</span> <span class="pl-k">=</span> <span class="pl-c1">array</span>(</span>
+<span class="pl-s1">    <span class="pl-c">// required</span></span>
+<span class="pl-s1">    <span class="pl-s"><span class="pl-pds">'</span>access_token<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>POST_SERVER_ITEM_ACCESS_TOKEN<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">    <span class="pl-c">// optional - environment name. any string will do.</span></span>
+<span class="pl-s1">    <span class="pl-s"><span class="pl-pds">'</span>environment<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>production<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">    <span class="pl-c">// optional - path to directory your code is in. used for linking stack traces.</span></span>
+<span class="pl-s1">    <span class="pl-s"><span class="pl-pds">'</span>root<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>/Users/brian/www/myapp<span class="pl-pds">'</span></span></span>
+<span class="pl-s1">);</span>
+<span class="pl-s1"><span class="pl-c1">Rollbar</span><span class="pl-k">::</span>init(<span class="pl-smi">$config</span>);</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+
+
+<p>Be sure to replace <code>POST_SERVER_ITEM_ACCESS_TOKEN</code> with your project's <code>post_server_item</code> access token, which you can find in the Rollbar.com interface.</p>
+
+<p>This will install an exception handler (with <code>set_exception_handler</code>) and an error handler (with <code>set_error_handler</code>). If you'd rather not do that:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$set_exception_handler</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;</span>
+<span class="pl-s1"><span class="pl-smi">$set_error_handler</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;</span>
+<span class="pl-s1"><span class="pl-c1">Rollbar</span><span class="pl-k">::</span>init(<span class="pl-smi">$config</span>, <span class="pl-smi">$set_exception_handler</span>, <span class="pl-smi">$set_error_handler</span>);</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<h3>
+<a id="for-heroku-users" class="anchor" href="#for-heroku-users" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>For Heroku Users</h3>
+
+<p>First, add the addon:</p>
+
+<pre><code>heroku addons:create rollbar:free
+</code></pre>
+
+<p>The <code>access_token</code> and <code>root</code> config variables will be automatically detected, so the config is simply:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c1">Rollbar</span><span class="pl-k">::</span>init(<span class="pl-c1">array</span>(</span>
+<span class="pl-s1">    <span class="pl-s"><span class="pl-pds">'</span>environment<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>production<span class="pl-pds">'</span></span></span>
+<span class="pl-s1">));</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<h2>
+<a id="basic-usage" class="anchor" href="#basic-usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Basic Usage</h2>
+
+<p>That's it! Uncaught errors and exceptions will now be reported to Rollbar.</p>
+
+<p>If you'd like to report exceptions that you catch yourself:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">try</span> {</span>
+<span class="pl-s1">    do_something();</span>
+<span class="pl-s1">} <span class="pl-k">catch</span> (<span class="pl-c1">Exception</span> <span class="pl-smi">$e</span>) {</span>
+<span class="pl-s1">    <span class="pl-c1">Rollbar</span><span class="pl-k">::</span>report_exception(<span class="pl-smi">$e</span>);</span>
+<span class="pl-s1">}</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<p>You can also send Rollbar log-like messages:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c1">Rollbar</span><span class="pl-k">::</span>report_message(<span class="pl-s"><span class="pl-pds">'</span>could not connect to mysql server<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>warning<span class="pl-pds">'</span></span>);</span>
+<span class="pl-s1"><span class="pl-c1">Rollbar</span><span class="pl-k">::</span>report_message(<span class="pl-s"><span class="pl-pds">'</span>Here is a message with some additional data<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>info<span class="pl-pds">'</span></span>, </span>
+<span class="pl-s1">    <span class="pl-c1">array</span>(<span class="pl-s"><span class="pl-pds">'</span>x<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-c1">10</span>, <span class="pl-s"><span class="pl-pds">'</span>code<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>blue<span class="pl-pds">'</span></span>));</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<h2>
+<a id="batching" class="anchor" href="#batching" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Batching</h2>
+
+<p>By default, payloads are batched and sent to the Rollbar servers at the end of every script execution via a shutdown handler, or when the batch size reaches 50, whichever comes first. This works well in standard short-lived scripts, like serving web requests.</p>
+
+<p>If you're using Rollbar in a long-running script, such as a Laravel project or a background worker, you may want to manually flush the batch. To flush, simply call:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-s1"><span class="pl-c1">Rollbar</span><span class="pl-k">::</span>flush();</span></pre></div>
+
+<p>For example, if using Laravel, add the above line to your <code>App::after()</code> event handler. Or in a looping background worker, call it at the end of each loop.</p>
+
+<p>You can also tune the max batch size or disable batching altogether. See the <code>batch_size</code> and <code>batched</code> config variables, documented below.</p>
+
+<h2>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration</h2>
+
+<h3>
+<a id="asynchronous-reporting" class="anchor" href="#asynchronous-reporting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Asynchronous Reporting</h3>
+
+<p>By default, payloads (batched or not) are sent as part of script execution. This is easy to configure but may negatively impact performance. With some additional setup, payloads can be written to a local relay file instead; that file will be consumed by <a href="https://github.com/rollbar/rollbar-agent">rollbar-agent</a> asynchronously. To turn this on, set the following config params:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$config</span> <span class="pl-k">=</span> <span class="pl-c1">array</span>(</span>
+<span class="pl-s1">  <span class="pl-c">// ... rest of current config</span></span>
+<span class="pl-s1">  <span class="pl-s"><span class="pl-pds">'</span>handler<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>agent<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">  <span class="pl-s"><span class="pl-pds">'</span>agent_log_location<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>/var/www<span class="pl-pds">'</span></span>  <span class="pl-c">// not including final slash. must be writeable by the user php runs as.</span></span>
+<span class="pl-s1">);</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<p>You'll also need to run the agent. See the <a href="https://github.com/rollbar/rollbar-agent">rollbar-agent docs</a> for setup instructions.</p>
+
+<h3>
+<a id="configuration-reference" class="anchor" href="#configuration-reference" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration reference</h3>
+
+<p>All of the following options can be passed as keys in the <code>$config</code> array.</p>
+
+<p></p><dl>
+  <dt>access_token</dt>
+  <dd>Your project access token.
+  </dd>
+
+<p></p>
+<dt>agent_log_location</dt>
+  <dd>Path to the directory where agent relay log files should be written. Should not include final slash. Only used when handler is <code>agent</code>.
+
+<p>Default: <code>/var/www</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>base_api_url</dt>
+  <dd>The base api url to post to.
+
+<p>Default: <code>https://api.rollbar.com/api/1/</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>batch_size</dt>
+  <dd>Flush batch early if it reaches this size.
+
+<p>Default: <code>50</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>batched</dt>
+  <dd>True to batch all reports from a single request together.
+
+<p>Default: <code>true</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>branch</dt>
+  <dd>Name of the current branch.
+
+<p>Default: <code>master</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>capture_error_stacktraces</dt>
+  <dd>Record full stacktraces for PHP errors.
+
+<p>Default: <code>true</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>code_version</dt>
+  <dd>The currently-deployed version of your code/application (e.g. a Git SHA). Should be a string.
+
+<p>Default: <code>null</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>environment</dt>
+  <dd>Environment name, e.g. <code>'production'</code> or <code>'development'</code>
+
+<p>Default: <code>'production'</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>error_sample_rates</dt>
+  <dd>Associative array mapping error numbers to sample rates. Sample rates are ratio out of 1, e.g. 0 is "never report", 1 is "always report", and 0.1 is "report 10% of the time". Sampling is done on a per-error basis.
+
+<p>Default: empty array, meaning all errors are reported.
+  </p>
+</dd>
+
+<p></p>
+<dt>handler</dt>
+  <dd>Either <code>'blocking'</code> or <code>'agent'</code>. <code>'blocking'</code> uses curl to send requests immediately; <code>'agent'</code> writes a relay log to be consumed by <a href="https://github.com/rollbar/rollbar-agent">rollbar-agent</a>.
+
+<p>Default: <code>'blocking'</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>host</dt>
+  <dd>Server hostname.
+
+<p>Default: <code>null</code>, which will result in a call to <code>gethostname()</code> (or <code>php_uname('n')</code> if that function does not exist)
+  </p>
+</dd>
+
+<p></p>
+<dt>included_errno</dt>
+  <dd>A bitmask that includes all of the error levels to report. E.g. (E_ERROR | E_WARNING) to only report E_ERROR and E_WARNING errors. This will be used in combination with <code>error_reporting()</code> to prevent reporting of errors if <code>use_error_reporting</code> is set to <code>true</code>.
+
+<p>Default: (E_ERROR | E_WARNING | E_PARSE | E_CORE_ERROR | E_USER_ERROR | E_RECOVERABLE_ERROR)
+  </p>
+</dd>
+
+<p></p>
+<dt>logger</dt>
+  <dd>An object that has a <code>log($level, $message)</code> method. If provided, will be used by RollbarNotifier to log messages.
+  </dd>
+
+<p></p>
+<dt>person</dt>
+  <dd>An associative array containing data about the currently-logged in user. Required: <code>id</code>, optional: <code>username</code>, <code>email</code>. All values are strings.
+  </dd>
+
+<p></p>
+<dt>person_fn</dt>
+  <dd>A function reference (string, etc. - anything that <a href="http://php.net/call_user_func">call_user_func()</a> can handle) returning an array like the one for 'person'.
+  </dd>
+
+<p></p>
+<dt>root</dt>
+  <dd>Path to your project's root dir
+  </dd>
+
+<p></p>
+<dt>scrub_fields</dt>
+  <dd>Array of field names to scrub out of _POST and _SESSION. Values will be replaced with asterisks. If overridiing, make sure to list all fields you want to scrub, not just fields you want to add to the default. Param names are converted to lowercase before comparing against the scrub list.
+
+<p>Default: <code>('passwd', 'password', 'secret', 'confirm_password', 'password_confirmation', 'auth_token', 'csrf_token')</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>shift_function</dt>
+  <dd>Whether to shift function names in stack traces down one frame, so that the function name correctly reflects the context of each frame.
+
+<p>Default: <code>true</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>timeout</dt>
+  <dd>Request timeout for posting to rollbar, in seconds.
+
+<p>Default: <code>3</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>report_suppressed</dt>
+  <dd>Sets whether errors suppressed with '@' should be reported or not
+
+<p>Default: <code>false</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>use_error_reporting</dt>
+  <dd>Sets whether to respect current <code>error_reporting()</code> level or not
+
+<p>Default: <code>false</code>
+  </p>
+</dd>
+
+<p></p>
+<dt>proxy</dt>
+  <dd>Send data via a proxy server.
+
+<p>E.g. Using a local proxy with no authentication</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$config</span>[<span class="pl-s"><span class="pl-pds">'</span>proxy<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>127.0.0.1:8080<span class="pl-pds">"</span></span>;</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<p>E.g. Using a local proxy with basic authentication</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$config</span>[<span class="pl-s"><span class="pl-pds">'</span>proxy<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> <span class="pl-c1">array</span>(</span>
+<span class="pl-s1">    <span class="pl-s"><span class="pl-pds">'</span>address<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>127.0.0.1:8080<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">    <span class="pl-s"><span class="pl-pds">'</span>username<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>my_user<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">    <span class="pl-s"><span class="pl-pds">'</span>password<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-s"><span class="pl-pds">'</span>my_password<span class="pl-pds">'</span></span></span>
+<span class="pl-s1">);</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<p>Default: No proxy
+  </p>
+</dd>
+
+<p></p>
+</dl>
+
+<p>Example use of error_sample_rates:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$config</span>[<span class="pl-s"><span class="pl-pds">'</span>error_sample_rates<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> <span class="pl-c1">array</span>(</span>
+<span class="pl-s1">    <span class="pl-c">// E_WARNING omitted, so defaults to 1</span></span>
+<span class="pl-s1">    <span class="pl-c1">E_NOTICE</span> <span class="pl-k">=&gt;</span> <span class="pl-c1">0.1</span>,</span>
+<span class="pl-s1">    <span class="pl-c1">E_USER_ERROR</span> <span class="pl-k">=&gt;</span> <span class="pl-c1">0.5</span>,</span>
+<span class="pl-s1">    <span class="pl-c">// E_USER_WARNING will take the same value, 0.5</span></span>
+<span class="pl-s1">    <span class="pl-c1">E_USER_NOTICE</span> <span class="pl-k">=&gt;</span> <span class="pl-c1">0.1</span>,</span>
+<span class="pl-s1">    <span class="pl-c">// E_STRICT and beyond will all be 0.1</span></span>
+<span class="pl-s1">);</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<p>Example use of person_fn:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">function</span> <span class="pl-en">get_current_user</span>() {</span>
+<span class="pl-s1">    <span class="pl-k">if</span> (<span class="pl-smi">$_SESSION</span>[<span class="pl-s"><span class="pl-pds">'</span>user_id<span class="pl-pds">'</span></span>]) {</span>
+<span class="pl-s1">        <span class="pl-k">return</span> <span class="pl-c1">array</span>(</span>
+<span class="pl-s1">            <span class="pl-s"><span class="pl-pds">'</span>id<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-smi">$_SESSION</span>[<span class="pl-s"><span class="pl-pds">'</span>user_id<span class="pl-pds">'</span></span>], <span class="pl-c">// required - value is a string</span></span>
+<span class="pl-s1">            <span class="pl-s"><span class="pl-pds">'</span>username<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-smi">$_SESSION</span>[<span class="pl-s"><span class="pl-pds">'</span>username<span class="pl-pds">'</span></span>], <span class="pl-c">// optional - value is a string</span></span>
+<span class="pl-s1">            <span class="pl-s"><span class="pl-pds">'</span>email<span class="pl-pds">'</span></span> <span class="pl-k">=&gt;</span> <span class="pl-smi">$_SESSION</span>[<span class="pl-s"><span class="pl-pds">'</span>user_email<span class="pl-pds">'</span></span>] <span class="pl-c">// optional - value is a string</span></span>
+<span class="pl-s1">        );</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1">    <span class="pl-k">return</span> <span class="pl-c1">null</span>;</span>
+<span class="pl-s1">}</span>
+<span class="pl-s1"><span class="pl-smi">$config</span>[<span class="pl-s"><span class="pl-pds">'</span>person_fn<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>get_current_user<span class="pl-pds">'</span></span>;</span>
+<span class="pl-s1"></span><span class="pl-pse"><span class="pl-s1">?</span>&gt;</span></pre></div>
+
+<h2>
+<a id="related-projects" class="anchor" href="#related-projects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Related projects</h2>
+
+<p>A Laravel-specific package is available for integrating with Laravel: <a href="https://github.com/jenssegers/Laravel-Rollbar">Laravel-Rollbar</a></p>
+
+<p>A CakePHP-specific package is avaliable for integrating with CakePHP 2.x:
+<a href="https://github.com/tranfuga25s/CakeRollbar">CakeRollbar</a></p>
+
+<h2>
+<a id="help--support" class="anchor" href="#help--support" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Help / Support</h2>
+
+<p>If you run into any issues, please email us at <a href="mailto:support@rollbar.com">support@rollbar.com</a></p>
+
+<p>You can also find us in IRC: #rollbar on chat.freenode.net</p>
+
+<p>For bug reports, please <a href="https://github.com/rollbar/rollbar-php/issues/new">open an issue on GitHub</a>.</p>
+
+<h2>
+<a id="contributing" class="anchor" href="#contributing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contributing</h2>
+
+<ol>
+<li>Fork it</li>
+<li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
+<li>Commit your changes (<code>git commit -am 'Added some feature'</code>)</li>
+<li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
+<li>Create new Pull Request</li>
+</ol>
+
+<p>Tests are in <code>tests</code>. To run the tests: <code>phpunit</code></p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/asrustia/rollbar-php">Rollbar-php</a> is maintained by <a href="https://github.com/asrustia">asrustia</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-74041710-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
